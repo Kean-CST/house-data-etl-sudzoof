@@ -97,7 +97,9 @@ MY_SCHEMA = StructType(
 
 def extract(spark: SparkSession, csv_path: str) -> DataFrame:
     """Load the CSV dataset into a PySpark DataFrame with correct data types."""
-    df = spark.read.csv(csv_path, header=True, schema=MY_SCHEMA, mode="PERMISSIVE")
+    df = spark.read.csv(
+        csv_path, header=True, schema=MY_SCHEMA, mode="PERMISSIVE", dateFormat="M/d/y"
+    ).sort("house_id")
     return df
 
 
