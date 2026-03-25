@@ -79,7 +79,7 @@ MY_SCHEMA = StructType(
         StructField("location_score", IntegerType(), True),
         StructField("school_rating", IntegerType(), True),
         StructField("crime_rate", IntegerType(), True),
-        StructField("distance_downtown_miles", DoubleType(), True),
+        StructField("distance_downtown_miles", IntegerType(), True),
         StructField("sale_date", DateType(), True),
         StructField("days_on_market", IntegerType(), True),
         StructField("buyer_id", StringType(), True),
@@ -98,8 +98,9 @@ MY_SCHEMA = StructType(
 def extract(spark: SparkSession, csv_path: str) -> DataFrame:
     """Load the CSV dataset into a PySpark DataFrame with correct data types."""
     df = spark.read.csv(
-        csv_path, header=True, schema=MY_SCHEMA, mode="PERMISSIVE", dateFormat="M/d/y"
+        csv_path, header=True, schema=MY_SCHEMA, mode="PERMISSIVE", dateFormat="M/d/yy"
     ).sort("house_id")
+    df.show()
     return df
 
 
