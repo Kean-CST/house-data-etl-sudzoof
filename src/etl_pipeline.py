@@ -19,6 +19,8 @@ from dotenv import load_dotenv  # noqa: F401
 from pyspark.sql import DataFrame, SparkSession  # noqa: F401
 from pyspark.sql import functions as F  # noqa: F401
 
+import tempfile
+
 # ── Predefined constants (do not modify) ──────────────────────────────────────
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -61,10 +63,19 @@ def extract(spark: SparkSession, csv_path: str) -> DataFrame:
 def transform(df: DataFrame) -> dict[str, DataFrame]:
     """Split the data by neighborhood and save each as a separate CSV file."""
     output = {}
-    for neighborhood in NEIGHBORHOODS:
-        n_df = df.filter(df.neighborhood == neighborhood)
-        output[neighborhood] = n_df
-        n_df.write.csv(str(OUTPUT_FILES[neighborhood]), mode="overwrite", header=True)
+    with tempfile.TemporaryDirectory(prefix="csv") as d:
+        for neighborhood in NEIGHBORHOODS:
+            n_df = df.filter(df.neighborhood == neighborhood)
+            output[neighborhood] = n_df
+            temp_path = os.path.join(d, neighborhood)
+            print(f"Temp Path: {temp_path}")
+            # Save csv in temp folder
+            n_df.write.csv(temp_path, mode="overwrite", header=True)
+            # Look for csv file (there should only be one csv, so we can just take the 0 index)
+            temp_file = next(Path(temp_path).glob("*.csv"))
+            # Move file to output
+            os.rename(temp_file, OUTPUT_FILES[neighborhood])
+
     return output
 
 
