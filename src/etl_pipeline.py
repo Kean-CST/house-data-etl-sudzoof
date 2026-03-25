@@ -74,7 +74,7 @@ def transform(df: DataFrame) -> dict[str, DataFrame]:
             # Look for csv file (there should only be one csv, so we can just take the 0 index)
             temp_file = next(Path(temp_path).glob("*.csv"))
             # Move file to output
-            os.rename(temp_file, OUTPUT_FILES[neighborhood])
+            os.renames(temp_file, OUTPUT_FILES[neighborhood])
 
     return output
 
