@@ -62,7 +62,9 @@ def transform(df: DataFrame) -> dict[str, DataFrame]:
     """Split the data by neighborhood and save each as a separate CSV file."""
     output = {}
     for neighborhood in NEIGHBORHOODS:
-        output[neighborhood] = df.filter(df.neighborhood == neighborhood)
+        n_df = df.filter(df.neighborhood == neighborhood)
+        output[neighborhood] = n_df
+        n_df.write.csv(str(OUTPUT_FILES[neighborhood]), mode="overwrite", header=True)
     return output
 
 
