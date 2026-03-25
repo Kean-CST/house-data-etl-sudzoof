@@ -100,7 +100,6 @@ def extract(spark: SparkSession, csv_path: str) -> DataFrame:
     df = spark.read.csv(
         csv_path, header=True, schema=MY_SCHEMA, mode="PERMISSIVE", dateFormat="M/d/yy"
     ).sort("house_id")
-    df.show()
     return df
 
 
