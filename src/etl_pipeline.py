@@ -20,6 +20,15 @@ from pyspark.sql import DataFrame, SparkSession  # noqa: F401
 from pyspark.sql import functions as F  # noqa: F401
 
 import tempfile
+from pyspark.sql.types import (
+    StructType,
+    StructField,
+    StringType,
+    IntegerType,
+    DoubleType,
+    BooleanType,
+    DateType,
+)
 
 # ── Predefined constants (do not modify) ──────────────────────────────────────
 ROOT = Path(__file__).resolve().parent.parent
@@ -45,18 +54,50 @@ OUTPUT_FILES = {
 PG_TABLES = {hood: f"public.{hood.replace(' ', '_').lower()}" for hood in NEIGHBORHOODS}
 
 PG_COLUMN_SCHEMA = (
-    "house_id STRING, neighborhood STRING, price INTEGER, square_feet INTEGER, "
+    "house_id TEXT, neighborhood TEXT, price INTEGER, square_feet INTEGER, "
     "num_bedrooms INTEGER, num_bathrooms INTEGER, house_age INTEGER, "
     "garage_spaces INTEGER, lot_size_acres NUMERIC(6,2), has_pool BOOLEAN, "
-    "recently_renovated BOOLEAN, energy_rating STRING, location_score INTEGER, "
+    "recently_renovated BOOLEAN, energy_rating TEXT, location_score INTEGER, "
     "school_rating INTEGER, crime_rate INTEGER, "
     "distance_downtown_miles NUMERIC(6,2), sale_date DATE, days_on_market INTEGER"
+)
+
+MY_SCHEMA = StructType(
+    [
+        StructField("house_id", StringType(), True),
+        StructField("neighborhood", StringType(), True),
+        StructField("price", IntegerType(), True),
+        StructField("square_feet", IntegerType(), True),
+        StructField("num_bedrooms", IntegerType(), True),
+        StructField("num_bathrooms", IntegerType(), True),
+        StructField("house_age", IntegerType(), True),
+        StructField("garage_spaces", IntegerType(), True),
+        StructField("lot_size_acres", DoubleType(), True),
+        StructField("has_pool", BooleanType(), True),
+        StructField("recently_renovated", BooleanType(), True),
+        StructField("energy_rating", StringType(), True),
+        StructField("location_score", IntegerType(), True),
+        StructField("school_rating", IntegerType(), True),
+        StructField("crime_rate", IntegerType(), True),
+        StructField("distance_downtown_miles", DoubleType(), True),
+        StructField("sale_date", DateType(), True),
+        StructField("days_on_market", IntegerType(), True),
+        StructField("buyer_id", StringType(), True),
+        StructField("buyer_budget", IntegerType(), True),
+        StructField("buyer_age_group", StringType(), True),
+        StructField("buyer_family_size", IntegerType(), True),
+        StructField("buyer_income_level", StringType(), True),
+        StructField("has_children", BooleanType(), True),
+        StructField("employment_type", StringType(), True),
+        StructField("buyer_preference", StringType(), True),
+        StructField("first_time_buyer", BooleanType(), True),
+    ]
 )
 
 
 def extract(spark: SparkSession, csv_path: str) -> DataFrame:
     """Load the CSV dataset into a PySpark DataFrame with correct data types."""
-    df = spark.read.csv(csv_path, header=True, schema=PG_COLUMN_SCHEMA)
+    df = spark.read.csv(csv_path, header=True, schema=MY_SCHEMA, mode="PERMISSIVE")
     return df
 
 
@@ -68,7 +109,6 @@ def transform(df: DataFrame) -> dict[str, DataFrame]:
             n_df = df.filter(df.neighborhood == neighborhood)
             output[neighborhood] = n_df
             temp_path = os.path.join(d, neighborhood)
-            print(f"Temp Path: {temp_path}")
             # Save csv in temp folder
             n_df.write.csv(temp_path, mode="overwrite", header=True)
             # Look for csv file (there should only be one csv, so we can just take the 0 index)
